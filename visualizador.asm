@@ -182,27 +182,35 @@ ordenar_alfabetico:
     mov rsi, msg_sortin   ; "Entrando..."
     mov rdx, msg_sortin_len
     syscall
+
     cmp rbx, 1
     jle end_sorting
-    mov r10, rbx
-    dec r10
-    mov rcx, r10
-outer_loop:
-    xor rsi, rsi
-inner_loop:
-    mov rdx, r10
-    sub rdx, rcx
-    cmp rsi, rdx
-    jge next_outer
+    mov r10, rbx   ; r10 = total productos
 
-    mov r8, nombre_producto
-    mov r9, rsi
-    imul r9, r9, 32
-    add r8, r9
-    mov r11, r8
-    add r11, 32
-    mov rdi, r8
-    mov rsi, r11
+    xor r8, r8             ; i = 0
+outer_loop:
+    cmp r8, r10
+    jge next_outer_all
+
+    mov r9, 0              ; j = 0
+    mov r11, r10
+    sub r11, r8 
+    dec r11                ; r11 = n-i
+
+inner_loop:
+    cmp r9, r11
+    jge next_outer         
+    mov r12, nombre_producto
+
+    mov r13, r9
+    imul r13, r13, 32
+    add r12, r13          ; nombre producto r9
+
+    mov r14, r12
+    add r14, 32          ; nombre producto r9+1
+
+    mov rdi, r12
+    mov rsi, r14
     mov rcx, 32
 compare_names:
     mov al, [rdi]
@@ -217,42 +225,43 @@ compare_names:
     loop compare_names
 
 no_swap:
-    inc rsi
+    inc r9
     jmp inner_loop
 
 do_swap:
-    ;mov rcx, 32
+    push rcx
+    mov rcx, 32
     mov rdi, temp_nombre
-    mov rsi, r8
+    mov rsi, r12
     rep movsb
-    ;mov rcx, 32
-    mov rdi, r8
-    mov rsi, r11
+    mov rcx, 32
+    mov rdi, r12
+    mov rsi, r14
     rep movsb
-    ;mov rcx, 32
-    mov rdi, r11
+    mov rcx, 32
+    mov rdi, r14
     mov rsi, temp_nombre
     rep movsb
-
+    pop rcx
     ; swap valores (4 bytes)
-    mov rdi, valor_producto
-    mov rsi, rsi
-    mov rax, rsi
-    shl rax, 2
-    add rdi, rax           ; dir valor[j]
-    mov eax, [rdi]
-    mov rdx, rdi
-    add rdx, 4             ; dir valor[j+1]
+    mov r15, valor_producto
+    mov r13, r9
+    shl r13, 2
+    add r15, r13       ; dir valor[j]
+    mov eax, [r15]
+    mov rdx, r15
+    add rdx, 4         ; dir valor[j+1]
     mov ecx, [rdx]
-    mov [rdi], ecx
+    mov [r15], ecx
     mov [rdx], eax
-
-    inc rsi
+    inc r9
     jmp inner_loop
 
 next_outer:
-    dec rcx
-    jnz outer_loop
+    inc r8
+    jmp outer_loop
+
+next_outer_all:
     mov rax, 1
     mov rdi, 1
     mov rsi, msg_sortout  ; "Saliendo..."
@@ -260,6 +269,7 @@ next_outer:
     syscall
 end_sorting:
     ret
+
 
 ;----------------------------------------------
 ; Imprime nombres y valores ordenados
