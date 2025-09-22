@@ -195,7 +195,7 @@ outer_loop:
     mov r9, 0              ; j = 0
     mov r11, r10
     sub r11, r8 
-    dec r11                ; r11 = n-i
+    dec r11                ; r11 = n-i-1
 
 inner_loop:
     cmp r9, r11
@@ -229,6 +229,11 @@ no_swap:
     jmp inner_loop
 
 do_swap:
+    mov r13,r9   ; validar r9+1<r10
+    inc r13
+    cmp r13,r10
+    jge .skip_swap     ;si j+1 >= num_productos saltar swap
+
     push rcx
     mov rcx, 32
     mov rdi, temp_nombre
@@ -247,13 +252,15 @@ do_swap:
     mov r15, valor_producto
     mov r13, r9
     shl r13, 2
-    add r15, r13       ; dir valor[j]
-    mov eax, [r15]
+    add r15, r13       ; valor_producto[j]
+    mov eax, [r15]     ; valor[j]
     mov rdx, r15
-    add rdx, 4         ; dir valor[j+1]
-    mov ecx, [rdx]
+    add rdx, 4         ; valor_producto[j+1]
+    mov ecx, [rdx]     ; valor[j+1]
     mov [r15], ecx
     mov [rdx], eax
+
+.skip_swap:
     inc r9
     jmp inner_loop
 
